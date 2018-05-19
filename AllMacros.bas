@@ -17,17 +17,17 @@ Sub Eqn_Sym_Correction()
         ' Hat Circumflex
         With Selection.Find
         .ClearFormatting
-        .text = "┴^"
+        .text = ChrW(&H2534) & "^"
         .Replacement.ClearFormatting
         .Replacement.text = ChrW(770)
         .Execute Replace:=wdWord, Forward:=True, _
             Wrap:=wdFindContinue
         End With
-        
+
         ' Absolute Value
         With Selection.Find
         .ClearFormatting
-        .text = "∣"
+        .text = ChrW(&H8739)
         .Replacement.ClearFormatting
         .Replacement.text = "|"
         .Execute Replace:=wdWord, Forward:=True, _
