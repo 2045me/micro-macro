@@ -257,6 +257,6 @@ Sub Shortcut_Keys_Customization()
     SendKeys "%"
     SendKeys "F"
     SendKeys "T"
-    SendKeys "{DOWN 7}" & "{TAB 3}" & "~" & "{END}" & "{UP 4}"
+    SendKeys "{DOWN 7}" & "{TAB 3}" & "~" & "{END}" & "{UP 4}" & "{TAB}"
 
 End Sub
