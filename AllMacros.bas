@@ -111,9 +111,9 @@ Sub Eqn_Bookmark()
             "(Eqn__.*(?![\\}])\w)")
         ' Equivalent to
         '   `(Eqn__.*\w)(?<![\\}])`
-        ' The above is how to use the "Negative Lookahead" (the former) to simulate
-        '   the "Negative Lookbehind" (the latter) in VBA regex.
         ' Explanation:
+        '   The above is how to use the "Negative Lookahead" (the former) to simulate
+        '     the "Negative Lookbehind" (the latter) in VBA regex.
         '   The capture group contains the last `\w`,
         '     regardless of any `\W` separator,
         '     and ignores any `\W` after the last `\w`.
