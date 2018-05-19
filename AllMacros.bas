@@ -17,7 +17,7 @@ Sub Eqn_Sym_Correction()
         ' Hat Circumflex
         With Selection.Find
         .ClearFormatting
-        .text = "��^"
+        .text = "┴^"
         .Replacement.ClearFormatting
         .Replacement.text = ChrW(770)
         .Execute Replace:=wdWord, Forward:=True, _
@@ -27,7 +27,7 @@ Sub Eqn_Sym_Correction()
         ' Absolute Value
         With Selection.Find
         .ClearFormatting
-        .text = "�O"
+        .text = "∣"
         .Replacement.ClearFormatting
         .Replacement.text = "|"
         .Execute Replace:=wdWord, Forward:=True, _
