@@ -27,7 +27,7 @@ Sub Eqn_Sym_Correction()
         ' Absolute Value
         With Selection.Find
         .ClearFormatting
-        .text = ChrW(&H8739)
+        .text = ChrW(&H2223)
         .Replacement.ClearFormatting
         .Replacement.text = "|"
         .Execute Replace:=wdWord, Forward:=True, _
