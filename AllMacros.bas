@@ -114,8 +114,8 @@ Sub Eqn_Bookmark()
         ' Explanation:
         '   The above is how to use the "Negative Lookahead" (the former) to simulate
         '     the "Negative Lookbehind" (the latter) in VBA regex.
-        '   The capture group contains the last `\w`,
-        '     regardless of any `\W` separator,
+        '   The capture group matches until the last `\w` in the string,
+        '     regardless of if any `\W` in the group,
         '     and ignores any `\W` after the last `\w`.
         ''MsgBox "Bookmark name:" + Chr(13) + bookmark_name
 
