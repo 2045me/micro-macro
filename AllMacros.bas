@@ -21,14 +21,7 @@ Sub Eqn_MathML_Correction()
 '   MS Word may mishandle some symbols when converting MathML to MS formulas.
 
     Selection.OMaths.Linearize
-    Selection.Find.MatchWildcards = True
-    
-        With Selection.Find
-            .text = "<([A-z0-9]@_[A-z0-9]@)>"
-            .Replacement.text = "(\1)"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
-        End With
-    
+
     Selection.Find.MatchWildcards = False
     
         ' Hat circumflex
@@ -74,7 +67,7 @@ Sub Eqn_MathML_Correction()
             .Replacement.text = "\1"
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
-    
+
     Selection.OMaths.BuildUp
 
     ' Type a thin space, in order to facilitate some situations.
