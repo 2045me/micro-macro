@@ -54,7 +54,7 @@ Sub Eqn_MathML_Correction()
     
     Selection.Find.MatchWildcards = True
     
-        ' Wrong and redundant placeholders
+        ' Remove erroneous and redundant placeholders
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(^^?@)" & "[" & ChrW(12311) & "]"
             .Replacement.text = "\1"
