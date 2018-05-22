@@ -6,7 +6,8 @@ Sub Eqn_Italic()
 ' Bug:
 '    Run-time error '5941':
 '      The requested member of the collection does not exist.
-'    -- This problem occurs if you remove the equation but the equation environment remains.
+'    -- This problem occurs when the equation is deleted
+'         but the empty selection area remains in the equation environment.
 ' Solution:
 '    Directly continue typing your equation,
 '      or arbitrarily press the ARROW keys 2 times.
@@ -17,7 +18,7 @@ End Sub
 
 Sub Eqn_MathML_Correction()
 
-' This macro is used to fix the problem:
+' This macro is mainly used to fix the following issues:
 '   MS Word may mishandle some symbols when converting MathML to MS formulas.
 
     Selection.OMaths.Linearize
@@ -69,11 +70,6 @@ Sub Eqn_MathML_Correction()
         End With
 
     Selection.OMaths.BuildUp
-
-    ' Type a thin space, in order to facilitate some situations.
-    Selection.MoveRight
-    Selection.TypeText text:="\thinsp"
-    SendKeys " "
 
 End Sub
 
