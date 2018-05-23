@@ -36,6 +36,10 @@ Sub Eqn_MathML_Correction()
 '
 ' There are other decorative features.
 '
+' Note
+' ====
+'   Can only be used for interline formulas, not for inline formulas.
+'
 ' Bug
 ' ===
 '   When the numerator and denominator each have more than 1 non-numeric character,
@@ -390,7 +394,7 @@ End Function
 
 Sub Shortcut_Keys_Preset_Assignment()
 
-' You can run `Shortcut_Keys_Customization` to
+' You can run `Shortcut_Keys_Customization_Pane` to
 '   see and modify easily in the visible pane.
 '
 ' Current preset:
@@ -417,7 +421,7 @@ End Sub
 
 '
 
-Sub Shortcut_Keys_Customization()
+Sub Shortcut_Keys_Customization_Pane()
 
     SendKeys "{ESC}"
     SendKeys "%"
