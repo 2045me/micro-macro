@@ -49,15 +49,12 @@ Sub Eqn_MathML_Correction()
 
     Selection.OMaths.Linearize
     
-    Selection.Find.MatchWildcards = False
-    
     
         ' Hat circumflex
         With Selection.Find
             .text = ChrW(9524) & "^"
             .Replacement.text = ChrW(770)
-            .MatchWildcards = False
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
         End With
         
         
@@ -65,7 +62,7 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = ChrW(8739)
             .Replacement.text = "|"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
         End With
         
         
@@ -73,96 +70,105 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = ChrW(9524) & ChrW(8594)
             .Replacement.text = ChrW(8407)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
         End With
     
     
-    Selection.Find.MatchWildcards = True
+    ' Regular font marking
+    ' ====================
+    With Selection.Find.Font
+        .Bold = False
+        .Italic = False
+    End With
     
-        
+    Dim text_identifier As String
+    text_identifier = "~%%~"
+    
+    With Selection.Find
+        .text = "([A-Za-z0-9]{1,})"
+        .Replacement.text = text_identifier & "\1" & text_identifier
+        .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    ' ====================
+    
+    
+    Selection.Font.Italic = 0 ' Note: Otherwise, the alphabetic characters in the equation environment cannot be found.
+    
+    
+    ' Must NOT remove spacing here
+    
+    
         ' Remove erroneous and redundant placeholders
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(^^?@)" & "[" & ChrW(12311) & "]"
             .Replacement.text = "\1"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
         ' Large Operator
         With Selection.Find
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "])"
+            ' With super-~sub-script
+            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "]_*?*^^*?*)(  )"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            ' Without super-~sub-script
+            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "])([!_])"
+            .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\2"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
         ' Add thin space
-        ' ==============
-        
-        With Selection.Find.Font
-            .Bold = False
-            .Italic = False
-        End With
-        
-        ' Mark those texts whose font format is regular
-        Dim text_identifier As String
-        Dim select_region As Range
-
-        text_identifier = "~%%~"
-        
         With Selection.Find
-            .text = "([A-Za-z]{1,})"
-            .Replacement.text = text_identifier & "\1" & text_identifier
-            .MatchWildcards = True
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
-        End With
-        
-        Selection.Font.Italic = 0 ' Note: Otherwise, the alphabetic characters in the equation environment cannot be found.
-        
-        ' Officially begin replacement
-        ' ----------------------------
-        With Selection.Find
-            .text = "(?[!A-z0-9~" & ChrW(34) & "][ \)A-Za-z" & ChrW(8201) & "])([A-Za-z])"
+            ' Principle:
+            '   Would rather not add, do not mistakenly add.
+            '   Therefore `[!A-z0-9...]`
+            .text = "(?[!A-z0-9~" & ChrW(34) & "][ \)A-Za-ce-z" & ChrW(8201) & "])([A-Za-z])"
             .Replacement.text = "\1" & ChrW(8201) & "\2"
             .MatchWildcards = True
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
-        ' --------------------
+    
+    
+    ' Reselect the equation block region
+    Selection.MoveEndUntil ChrW(9632), wdBackward
+    Selection.MoveLeft
+    Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+    
+    
+    Selection.Font.Italic = 1
+    
+    
+    ' Regular font restoring
+    ' ======================
+    Selection.Find.ClearFormatting
+    Selection.Find.Replacement.ClearFormatting
+    With Selection.Find
+        .Replacement.text = "\1"
+        .MatchWildcards = True
+        Do While .Execute(Findtext:=text_identifier & "([!^^" & text_identifier & "]@)" & text_identifier)
+            If InStr(Selection, " ") = False Then
+                Selection.OMaths(1).ConvertToNormalText
+            Else
+                Exit Do
+            End If
+        Loop
         
         ' Reselect the equation block region
         Selection.MoveEndUntil ChrW(9632), wdBackward
         Selection.MoveLeft
         Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
         
-        Selection.Font.Italic = 1
-        
-        ' Restore those texts whose original font format is regular
-        Selection.Find.ClearFormatting
-        Selection.Find.Replacement.ClearFormatting
-        With Selection.Find
-            .Replacement.text = "\1"
-            .MatchWildcards = True
-            Do While .Execute(findtext:=text_identifier & "([!^^" & text_identifier & "]@)" & text_identifier)
-                If InStr(Selection, " ") = False Then
-                    Selection.OMaths(1).ConvertToNormalText
-                Else
-                    Exit Do
-                End If
-            Loop
-            ' Reselect the equation block region
-            Selection.MoveEndUntil ChrW(9632), wdBackward
-            Selection.MoveLeft
-            Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
-        End With
-        
-        ' ====================
-        
-        
+        .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    ' ====================
+    
+    
         ' Linear fraction bar should be used in the superscript
         With Selection.Find
             .text = "(^^\([! " & ChrW(8201) & "]@)/([! \)" & ChrW(8201) & "]@\))"
-            .Execute Forward:=True, Wrap:=wdFindStop
+            .Execute Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
                 If Selection Like "^(?*/?*)" = True Then
                     Selection.MoveRight
                     Selection.MoveLeft
@@ -185,11 +191,19 @@ Sub Eqn_MathML_Correction()
         End With
         
         
+'        ' Correct possible non-standard groupings input by the user that could cause MS Word to misinterpret
+'        With Selection.Find
+'            .text = "([\)])([\(])"
+'            .Replacement.text = "\1 \2"
+'            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+'        End With
+        
+        
         ' Remove redundant spacing
         With Selection.Find
             .text = "(?)[ " & ChrW(8201) & "]{2,}(?)"
             .Replacement.text = "\1" & ChrW(8201) & "\2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
     
     
