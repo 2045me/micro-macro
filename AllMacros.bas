@@ -3,14 +3,27 @@ Sub Eqn_Italic()
     Selection.OMaths.Add Range:=Selection.Range
     Selection.OMaths(1).ConvertToMathText
 
-' Bug:
-'    Run-time error '5941':
-'      The requested member of the collection does not exist.
-'    -- This problem occurs when the equation is deleted
-'         but the empty selection area remains in the equation environment.
-' Solution:
-'    Directly continue typing your equation,
-'      or arbitrarily press the ARROW keys 2 times.
+' Caution
+' =======
+'   Word will crash if the equation box is deleted using the BACKSPACE key in paragraph mode.
+'     (For example: click the mouse three times to select the formula box,
+'       then press the backspace key twice)
+' Solution
+' --------
+'   Always use the DELETE key only.
+'
+' Other Bug
+' =========
+'   Run-time error '5941':
+'     The requested member of the collection does not exist.
+'   -- It means that the equation boxes conflict.
+'      This problem occurs when the equation has been cleared
+'        but the empty selection region remains in the equation environment,
+'        and at the same time you didn't pay attention and added a new one there.
+' Solution
+' --------
+'   Directly continue typing your equation,
+'     or arbitrarily press arrow keys 2 times.
 
 End Sub
 
@@ -20,17 +33,29 @@ Sub Eqn_MathML_Correction()
 
 ' This macro is mainly used to fix the following issues:
 '   MS Word may mishandle some symbols when converting MathML to MS formulas.
+'
+' There are other decorative features.
+'
+' Bug
+' ===
+'   When the numerator and denominator each have more than 1 non-numeric character,
+'     characters on the outside will be pushed out of the fraction bar,
+'     thence need to be manually moved back to the top and bottom of the fraction bar.
+'   -- this bug is caused by the subroutine `Add thin space -> Officially begin replacement`.
 
     Selection.OMaths.Linearize
-
+    
     Selection.Find.MatchWildcards = False
+    
     
         ' Hat circumflex
         With Selection.Find
             .text = ChrW(9524) & "^"
             .Replacement.text = ChrW(770)
+            .MatchWildcards = False
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
+        
         
         ' Absolute value
         With Selection.Find
@@ -39,6 +64,7 @@ Sub Eqn_MathML_Correction()
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
         
+        
         ' Vector arrow
         With Selection.Find
             .text = ChrW(9524) & ChrW(8594)
@@ -46,8 +72,10 @@ Sub Eqn_MathML_Correction()
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
     
+    
     Selection.Find.MatchWildcards = True
     
+        
         ' Remove erroneous and redundant placeholders
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(^^?@)" & "[" & ChrW(12311) & "]"
@@ -55,22 +83,115 @@ Sub Eqn_MathML_Correction()
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
         
+        
         ' Large Operator
         With Selection.Find
             .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "])"
-            .Replacement.text = " \1" & ChrW(9618)
+            .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
         
-        ' Remove extra spacing
+        
+        ' Add thin space
+        ' ==============
+        
+        With Selection.Find.Font
+            .Bold = False
+            .Italic = False
+        End With
+        
+        ' Mark those texts whose font format is regular
+        Dim text_identifier As String
+        Dim select_region As Range
+
+        text_identifier = "~%%~"
+        
         With Selection.Find
-            .text = "([!A-z0-9\(\)\|])[ ]{2,255}"
-            .Replacement.text = "\1"
+            .text = "([A-Za-z]{1,})"
+            .Replacement.text = text_identifier & "\1" & text_identifier
+            .MatchWildcards = True
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
         End With
-
+        
+        Selection.Font.Italic = 0 ' Note: Otherwise, the alphabetic characters in the equation environment cannot be found.
+        
+        ' Officially begin replacement
+        ' ----------------------------
+        With Selection.Find
+            .text = "(?[!A-z0-9~" & ChrW(34) & "][ \)A-Za-z" & ChrW(8201) & "])([A-Za-z])"
+            .Replacement.text = "\1" & ChrW(8201) & "\2"
+            .MatchWildcards = True
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+        End With
+        ' --------------------
+        
+        ' Reselect the equation block region
+        Selection.MoveEndUntil ChrW(9632), wdBackward
+        Selection.MoveLeft
+        Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        
+        Selection.Font.Italic = 1
+        
+        ' Restore those texts whose original font format is regular
+        Selection.Find.ClearFormatting
+        Selection.Find.Replacement.ClearFormatting
+        With Selection.Find
+            .Replacement.text = "\1"
+            .MatchWildcards = True
+            Do While .Execute(findtext:=text_identifier & "([!^^" & text_identifier & "]@)" & text_identifier)
+                If InStr(Selection, " ") = False Then
+                    Selection.OMaths(1).ConvertToNormalText
+                Else
+                    Exit Do
+                End If
+            Loop
+            ' Reselect the equation block region
+            Selection.MoveEndUntil ChrW(9632), wdBackward
+            Selection.MoveLeft
+            Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+        End With
+        
+        ' ====================
+        
+        
+        ' Linear fraction bar should be used in the superscript
+        With Selection.Find
+            .text = "(^^\([! " & ChrW(8201) & "]@)/([! \)" & ChrW(8201) & "]@\))"
+            .Execute Forward:=True, Wrap:=wdFindStop
+                If Selection Like "^(?*/?*)" = True Then
+                    Selection.MoveRight
+                    Selection.MoveLeft
+                    Selection.MoveLeft Unit:=wdWord, Count:=3
+                    Selection.MoveRight Unit:=wdWord, Extend:=wdExtend
+                    Selection.OMaths(1).Functions.Add(Selection.Range, wdOMathFunctionFrac). _
+                        Frac.Type = wdOMathFracLin
+                    Selection.MoveEndUntil "(", wdBackward
+                    Selection.MoveRight Unit:=wdWord, Count:=3
+                    Selection.TypeBackspace
+                    Selection.MoveRight Unit:=wdWord, Extend:=wdExtend
+                    Selection.Cut
+                    Selection.MoveLeft
+                    Selection.PasteAndFormat (wdFormatSurroundingFormattingWithEmphasis)
+                End If
+            ' Reselect the equation block region
+            Selection.MoveEndUntil ChrW(9632), wdBackward
+            Selection.MoveLeft
+            Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        End With
+        
+        
+        ' Remove redundant spacing
+        With Selection.Find
+            .text = "(?)[ " & ChrW(8201) & "]{2,}(?)"
+            .Replacement.text = "\1" & ChrW(8201) & "\2"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+        End With
+    
+    
+    Selection.EndKey
     Selection.OMaths.BuildUp
-
+    
 End Sub
 
 '
