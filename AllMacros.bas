@@ -257,7 +257,7 @@ Sub Eqn_Bookmark()
 ' STEP 2.
 '   Apply macro.
 '     (Then the bookmark object is automatically copied to the clipboard,
-'     and you can paste it directly to your target location)
+'       and you can paste it directly to your target location)
 
     ActiveWindow.View.ShowFieldCodes = 1
     Selection.MoveRight Extend:=wdExtend
