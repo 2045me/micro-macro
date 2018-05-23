@@ -45,7 +45,7 @@ Sub Eqn_MathML_Correction()
 '   When the numerator and denominator each have more than 1 non-numeric character,
 '     characters on the outside will be pushed out of the fraction bar,
 '     thence need to be manually moved back to the top and bottom of the fraction bar.
-'   -- this bug is caused by the subroutine `Add thin space -> Officially begin replacement`.
+'   -- this bug is caused by the subroutine `Add thin space`.
 
     Selection.OMaths.Linearize
     
@@ -124,10 +124,9 @@ Sub Eqn_MathML_Correction()
             ' Principle:
             '   Would rather not add, do not mistakenly add.
             '   Therefore `[!A-z0-9...]`
-            .text = "(?[!A-z0-9~" & ChrW(34) & "][ \)A-Za-ce-z" & ChrW(8201) & "])([A-Za-z])"
+            .text = "([!A-z0-9_/\(~" & ChrW(34) & "][ \)A-Za-ce-z" & ChrW(8201) & "])([A-Za-z])"
             .Replacement.text = "\1" & ChrW(8201) & "\2"
-            .MatchWildcards = True
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
     
     
@@ -189,14 +188,6 @@ Sub Eqn_MathML_Correction()
             Selection.MoveLeft
             Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
         End With
-        
-        
-'        ' Correct possible non-standard groupings input by the user that could cause MS Word to misinterpret
-'        With Selection.Find
-'            .text = "([\)])([\(])"
-'            .Replacement.text = "\1 \2"
-'            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
-'        End With
         
         
         ' Remove redundant spacing
