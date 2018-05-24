@@ -6,7 +6,7 @@ Sub Eqn_Italic()
 ' Caution
 ' =======
 '   Word will crash if the equation box is deleted using the BACKSPACE key in paragraph mode.
-'     (For example: click the mouse three times to select the formula box,
+'     (For example: click the mouse three times to select the entire equation box,
 '       then press the backspace key twice)
 ' Solution
 ' --------
@@ -16,10 +16,10 @@ Sub Eqn_Italic()
 ' =========
 '   Run-time error '5941':
 '     The requested member of the collection does not exist.
-'   -- It means that the equation boxes conflict.
-'      This problem occurs when the equation has been cleared
-'        but the empty selection region remains in the equation environment,
-'        and at the same time you didn't pay attention and added a new one there.
+'   --It means that the equation boxes conflict.
+'     This problem occurs when the equation has been cleared
+'       but the empty selection region remains in the equation environment,
+'       and at the same time you didn't pay attention and added a new one there.
 ' Solution
 ' --------
 '   Directly continue typing your equation,
@@ -31,21 +31,27 @@ End Sub
 
 Sub Eqn_MathML_Correction()
 
-' This macro is mainly used to fix the following issues:
-'   MS Word may mishandle some symbols when converting MathML to MS formulas.
+' Introduction
+' ============
+'   This macro is mainly used to fix the following issues:
+'     MS Word may mishandle some symbols when converting MathML to MS formulas.
+'   There are other decorative features.
 '
-' There are other decorative features.
+' Usage
+' =====
+'   Select the entire equation box and run the macro.
 '
 ' Note
 ' ====
-'   Can only be used for interline formulas, not for inline formulas.
+'   1. It's better only be used for interline formulas, not for inline formulas.
+'   2. Don't let the equation at the end of the page before running the macro.
 '
-' Bug
-' ===
-'   When the numerator and denominator each have more than 1 non-numeric character,
-'     characters on the outside will be pushed out of the fraction bar,
-'     thence need to be manually moved back to the top and bottom of the fraction bar.
-'   -- this bug is caused by the subroutine `Add thin space`.
+' Bugs
+' ====
+'   Incorrectly exclude or include the numerator and denominator.
+'   --This bug is caused by
+'       `Insert thin space` and
+'       `Integrals and Large Operators`.
 
     Selection.OMaths.Linearize
     
@@ -74,19 +80,21 @@ Sub Eqn_MathML_Correction()
         End With
     
     
-    ' Regular font marking
-    ' ====================
+    ' Font marking - Regular
+    ' ======================
+    '   Question:
+    '     Unfortunately, even in Word 2016, there is no way to find and replace bold text in the equation box.
+    '     --Is that right?
     With Selection.Find.Font
-        .Bold = False
         .Italic = False
     End With
     
-    Dim text_identifier As String
-    text_identifier = "~%%~"
+    Dim text_identifier__R As String
+    text_identifier__R = "~%%~"
     
     With Selection.Find
         .text = "([A-Za-z0-9]{1,})"
-        .Replacement.text = text_identifier & "\1" & text_identifier
+        .Replacement.text = text_identifier__R & "\1" & text_identifier__R
         .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
     End With
     ' ====================
@@ -100,26 +108,64 @@ Sub Eqn_MathML_Correction()
     
         ' Remove erroneous and redundant placeholders
         With Selection.Find
-            .text = "[" & ChrW(12310) & "]" & "(^^?@)" & "[" & ChrW(12311) & "]"
+            .text = "[" & ChrW(12310) & "]" & "(?@)" & "[" & ChrW(12311) & "]"
             .Replacement.text = "\1"
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
-        ' Large Operator
+        ' Integrals and Large Operators
         With Selection.Find
-            ' With super-~sub-script
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "]_*?*^^*?*)(  )"
+            'Select Case what_found
+            ' With super- and sub-script
+            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "]_*?*^^*?*)([ ]{1,2})([!\(\)])"
+            .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\3"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "]_*?@^^*?@[ 0-9]\))([ " & ChrW(8201) & "])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
-            ' Without super-~sub-script
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & "])([!_])"
+            
+            ' Remove some incorrect extra additions
+            .text = "([\)])" & ChrW(9618) & " ([\(])"
+            .Replacement.text = "\1 \2"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            
+            ' Without super- or sub-script
+            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "])([!_])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\2"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            
+            ' With sub-script only
+            .text = "([" & ChrW(8719) & ChrW(8721) & "]_[! ]@ )"
+            .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            ' Remove some incorrect extra additions
+            .text = ChrW(9618) & "(\)" & ChrW(9618) & ")"
+            .Replacement.text = "\1"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            
+            ' Summations or Products of Integrals
+            .text = "([" & _
+                      ChrW(8719) & ChrW(8721) & _
+                        "][! ]*)([" & _
+                      ChrW(8747) & ChrW(8748) & ChrW(8749) & _
+                    "])"
+            .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\2"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            ' Remove some incorrect extra additions
+            .text = ChrW(8201) & "(" & ChrW(9618) & ")"
+            .Replacement.text = "\1"
             .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
-        ' Add thin space
+        ' Insert thin space
         With Selection.Find
             ' Principle:
             '   Would rather not add, do not mistakenly add.
@@ -130,33 +176,27 @@ Sub Eqn_MathML_Correction()
         End With
     
     
-    ' Reselect the equation block region
-    Selection.MoveEndUntil ChrW(9632), wdBackward
-    Selection.MoveLeft
-    Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
-    
-    
     Selection.Font.Italic = 1
     
     
-    ' Regular font restoring
-    ' ======================
+    ' Font restoring - Regular
+    ' ========================
     Selection.Find.ClearFormatting
     Selection.Find.Replacement.ClearFormatting
     With Selection.Find
         .Replacement.text = "\1"
         .MatchWildcards = True
-        Do While .Execute(Findtext:=text_identifier & "([!^^" & text_identifier & "]@)" & text_identifier)
+        Do While .Execute(Findtext:=text_identifier__R & "([!^^" & text_identifier__R & "]@)" & text_identifier__R)
             If InStr(Selection, " ") = False Then
-                Selection.OMaths(1).ConvertToNormalText
+                'Selection.OMaths(1).ConvertToNormalText
+                Selection.Font.Italic = False
             Else
                 Exit Do
             End If
         Loop
         
         ' Reselect the equation block region
-        Selection.MoveEndUntil ChrW(9632), wdBackward
-        Selection.MoveLeft
+        Selection.MoveUp Unit:=wdParagraph
         Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
         
         .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
@@ -184,9 +224,21 @@ Sub Eqn_MathML_Correction()
                     Selection.PasteAndFormat (wdFormatSurroundingFormattingWithEmphasis)
                 End If
             ' Reselect the equation block region
-            Selection.MoveEndUntil ChrW(9632), wdBackward
-            Selection.MoveLeft
+            Selection.MoveUp Unit:=wdParagraph
             Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        End With
+        
+        
+    ' Reselect the equation block region
+    Selection.MoveUp Unit:=wdParagraph
+    Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+    
+    
+        ' Remove erroneous and redundant placeholders again
+        With Selection.Find
+            .text = "[" & ChrW(12310) & "]" & "(?@)" & "[" & ChrW(12311) & "]"
+            .Replacement.text = "\1"
+            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
@@ -200,7 +252,7 @@ Sub Eqn_MathML_Correction()
     
     Selection.EndKey
     Selection.OMaths.BuildUp
-    
+
 End Sub
 
 '
@@ -209,16 +261,17 @@ Sub Eqn_Num()
 
 ' Note
 ' ====
-'   1. Only applies to Microsoft Word 2016 and later.
+'   1. Only applies to Microsoft Word 2016 and later,
+'        because `#(...)` is used to create an equation array.
 '   2. Release your hand as soon as possible after pressing the shortcut key.
 '
 ' Usage
 ' =====
 ' STEP 1.
-'   Put the cursor in the last position inside the formula box.
+'   Put the cursor in the last position inside the equation box.
 '
 ' STEP 2.
-'   Apply macro.
+'   Run the macro.
 
     With CaptionLabels("Equation")
         .NumberStyle = wdCaptionNumberStyleArabic
@@ -239,7 +292,7 @@ Sub Eqn_Num()
     Selection.Font.Color = Automatic
     Selection.EndKey
     
-    SendKeys "~"
+    SendKeys "~{BS}{RIGHT}"
 
 End Sub
 
@@ -264,7 +317,7 @@ Sub Eqn_Bookmark()
 '     (1.1-1{Eqn__Name}|)
 '                      ^
 ' STEP 2.
-'   Apply macro.
+'   Run the macro.
 '     (Then the bookmark object is automatically copied to the clipboard,
 '       and you can paste it directly to your target location)
 
@@ -305,7 +358,7 @@ Sub Eqn_Bookmark()
             Selection.MoveEndUntil Chr(21), wdBackward
             Selection.MoveLeft Extend:=wdExtend
             Selection.Fields.Add Range:=Selection.Range, Type:=wdFieldEmpty, text:= _
-                bookmark_name + "\", PreserveFormatting:=False
+                bookmark_name & "\", PreserveFormatting:=False
         
         Else
             ' Delete the field of the copied custom new bookmark name
@@ -331,7 +384,7 @@ Sub Eqn_Bookmark()
             
             ' Add bookmark identifier (hidden)
             Selection.Fields.Add Range:=Selection.Range, Type:=wdFieldEmpty, text:= _
-                bookmark_name + "\", PreserveFormatting:=False
+                bookmark_name & "\", PreserveFormatting:=False
         End If
     
     Else
@@ -348,7 +401,7 @@ Sub Eqn_Bookmark()
         
         ' Add bookmark identifier (hidden)
         Selection.Fields.Add Range:=Selection.Range, Type:=wdFieldEmpty, text:= _
-            bookmark_name + "\", PreserveFormatting:=False
+            bookmark_name & "\", PreserveFormatting:=False
         
         ' Generate bookmark REF and copy it to the clipboard
         Selection.InsertCrossReference ReferenceType:="Bookmark", ReferenceKind:= _
