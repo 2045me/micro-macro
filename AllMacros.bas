@@ -43,8 +43,7 @@ Sub Eqn_MathML_Correction()
 '
 ' Note
 ' ====
-'   1. It's better only be used for interline formulas, not for inline formulas.
-'   2. Don't let the equation at the end of the page before running the macro.
+'   It's better used only for interline formulas, not for inline formulas.
 '
 ' Bugs
 ' ====
