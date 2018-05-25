@@ -266,7 +266,7 @@ Sub Eqn_MathML_Correction()
     Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
     
     
-        ' Fix the potential bug that the stacks of arrays are arranged disorderly
+        ' Fix the latent bug that the equation array does not lie in the same column.
         '   --caused by the preceding `Font marking` -> `mathematical symbols of Roman typefaces`.
         If Selection.Find.Execute(FindText:="[!^13]" & ChrW(9632) & "\(") Then
             Selection.MoveRight
