@@ -55,11 +55,16 @@ Sub Eqn_MathML_Correction()
     Selection.OMaths.Linearize
     
     
+    With Selection.Find
+        .MatchWildcards = False
+    End With
+    
+    
         ' Hat circumflex
         With Selection.Find
             .text = ChrW(9524) & "^"
             .Replacement.text = ChrW(770)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=False
         End With
         
         
@@ -67,7 +72,7 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = ChrW(8739)
             .Replacement.text = "|"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=False
         End With
         
         
@@ -75,8 +80,13 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = ChrW(9524) & ChrW(8594)
             .Replacement.text = ChrW(8407)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=False
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=False
         End With
+    
+    
+    With Selection.Find
+        .MatchWildcards = True
+    End With
     
     
     ' Font marking - Regular
@@ -92,9 +102,11 @@ Sub Eqn_MathML_Correction()
     text_identifier__R = "~%%~"
     
     With Selection.Find
-        .text = "([A-Za-z0-9]{1,})"
+        .text = "([A-Za-z0-9" & _
+                  ChrW(8711) & _
+                "]{1,})" ' Including mathematical symbols of Roman typefaces
         .Replacement.text = text_identifier__R & "\1" & text_identifier__R
-        .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
     End With
     ' ====================
     
@@ -109,7 +121,7 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(?@)" & "[" & ChrW(12311) & "]"
             .Replacement.text = "\1"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
@@ -117,35 +129,43 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             'Select Case what_found
             ' With super- and sub-script
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "]_*?*^^*?*)([ ]{1,2})([!\(\)])"
+            .text = "([" & _
+                      ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & _
+                    "]_*?*^^*?*)([ ]{1,2})([!\(\)])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\3"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "]_*?@^^*?@[ 0-9]\))([ " & ChrW(8201) & "])"
+            .text = "([" & _
+                      ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & _
+                    "]_*?@^^*?@[ 0-9]\))([ " & ChrW(8201) & "])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             ' Remove some incorrect extra additions
             .text = "([\)])" & ChrW(9618) & " ([\(])"
             .Replacement.text = "\1 \2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             
             ' Without super- or sub-script
-            .text = "([" & ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & "])([!_])"
+            .text = "([" & _
+                      ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & _
+                    "])([!_])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             
             ' With sub-script only
-            .text = "([" & ChrW(8719) & ChrW(8721) & "]_[! ]@ )"
+            .text = "([" & _
+                      ChrW(8719) & ChrW(8721) & _
+                    "]_[! ]@ )"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618)
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             ' Remove some incorrect extra additions
             .text = ChrW(9618) & "(\)" & ChrW(9618) & ")"
             .Replacement.text = "\1"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             
             ' Summations or Products of Integrals
@@ -155,12 +175,23 @@ Sub Eqn_MathML_Correction()
                       ChrW(8747) & ChrW(8748) & ChrW(8749) & _
                     "])"
             .Replacement.text = ChrW(8201) & "\1" & ChrW(9618) & "\2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             ' Remove some incorrect extra additions
             .text = ChrW(8201) & "(" & ChrW(9618) & ")"
             .Replacement.text = "\1"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            .text = "(" & ChrW(9618) & "[!" & _
+                      ChrW(8719) & ChrW(8721) & _
+                      ChrW(8747) & ChrW(8748) & ChrW(8749) & _
+                    "]* )" & ChrW(9618)
+            .Replacement.text = "\1"
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            .text = "(" & ChrW(9618) & "{2,})"
+            .Replacement.text = ChrW(9618)
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
@@ -171,7 +202,7 @@ Sub Eqn_MathML_Correction()
             '   Therefore `[!A-z0-9...]`
             .text = "([!A-z0-9_/\(~" & ChrW(34) & "][ \)A-Za-ce-z" & ChrW(8201) & "])([A-Za-z])"
             .Replacement.text = "\1" & ChrW(8201) & "\2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
         End With
     
     
@@ -185,10 +216,12 @@ Sub Eqn_MathML_Correction()
     With Selection.Find
         .Replacement.text = "\1"
         .MatchWildcards = True
-        Do While .Execute(Findtext:=text_identifier__R & "([!^^" & text_identifier__R & "]@)" & text_identifier__R)
+        Do While .Execute(FindText:=text_identifier__R & "([!^^" & text_identifier__R & "]@)" & text_identifier__R)
             If InStr(Selection, " ") = False Then
-                'Selection.OMaths(1).ConvertToNormalText
                 Selection.Font.Italic = False
+                If Selection Like text_identifier__R & "d" & text_identifier__R Then
+                    .Replacement.text = ChrW(8201) & "\1"
+                End If
             Else
                 Exit Do
             End If
@@ -198,7 +231,7 @@ Sub Eqn_MathML_Correction()
         Selection.MoveUp Unit:=wdParagraph
         Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
         
-        .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
     End With
     ' ====================
     
@@ -206,7 +239,7 @@ Sub Eqn_MathML_Correction()
         ' Linear fraction bar should be used in the superscript
         With Selection.Find
             .text = "(^^\([! " & ChrW(8201) & "]@)/([! \)" & ChrW(8201) & "]@\))"
-            .Execute Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Wrap:=wdFindStop, MatchWildcards:=True
                 If Selection Like "^(?*/?*)" = True Then
                     Selection.MoveRight
                     Selection.MoveLeft
@@ -226,18 +259,30 @@ Sub Eqn_MathML_Correction()
             Selection.MoveUp Unit:=wdParagraph
             Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
         End With
-        
-        
+    
+    
     ' Reselect the equation block region
     Selection.MoveUp Unit:=wdParagraph
     Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
     
     
+        ' Fix the potential bug that the stacks of arrays are arranged disorderly
+        '   --caused by the preceding `Font marking` -> `mathematical symbols of Roman typefaces`.
+        If Selection.Find.Execute(FindText:="[!^13]" & ChrW(9632) & "\(") Then
+            Selection.MoveRight
+            Selection.MoveLeft Count:=2, Extend:=wdExtend
+            Selection.Cut
+            Selection.MoveUp Unit:=wdParagraph
+            Selection.Paste
+            Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        End If
+        
+        
         ' Remove erroneous and redundant placeholders again
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(?@)" & "[" & ChrW(12311) & "]"
             .Replacement.text = "\1"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
         End With
         
         
@@ -245,7 +290,7 @@ Sub Eqn_MathML_Correction()
         With Selection.Find
             .text = "(?)[ " & ChrW(8201) & "]{2,}(?)"
             .Replacement.text = "\1" & ChrW(8201) & "\2"
-            .Execute Replace:=wdWord, Forward:=True, Wrap:=wdFindStop, MatchWildcards:=True
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
         End With
     
     
@@ -281,17 +326,16 @@ Sub Eqn_Num()
     End With
     
     Selection.TypeText text:="#("
-    
     Selection.InsertCaption Label:="Equation", ExcludeLabel:=1
-    
     Selection.TypeText text:=")"
     
-    Selection.HomeKey Extend:=wdExtend
+    Selection.MoveUp Unit:=wdParagraph, Extend:=wdExtend
     Selection.Font.Size = ActiveDocument.Styles("Normal").Font.Size
     Selection.Font.Color = Automatic
     Selection.EndKey
     
     SendKeys "~{BS}{RIGHT}"
+    Selection.Font.Italic = 0
 
 End Sub
 
