@@ -5,7 +5,7 @@ Sub Eqn_Italic()
 
 ' Caution
 ' =======
-'   Word will crash if the equation box is deleted using the BACKSPACE key in paragraph mode.
+'   Word will **crash** if the equation box is deleted using the BACKSPACE key in paragraph mode.
 '     (For example: click the mouse three times to select the entire equation box,
 '       then press the backspace key twice)
 ' Solution
@@ -33,9 +33,9 @@ Sub Eqn_MathML_Correction()
 
 ' Introduction
 ' ============
-'   This macro is mainly used to fix the following issues:
+'   This macro is originally mainly used to fix the following issues:
 '     MS Word may mishandle some symbols when converting MathML to MS formulas.
-'   There are other decorative features.
+'   And then a few decorative features were added.
 '
 ' Usage
 ' =====
@@ -45,12 +45,17 @@ Sub Eqn_MathML_Correction()
 ' ====
 '   It's better used only for interline formulas, not for inline formulas.
 '
-' Bugs
-' ====
-'   Incorrectly exclude or include the numerator and denominator.
-'   --This bug is caused by
-'       `Insert thin space` and
-'       `Integrals and Large Operators`.
+' Bugs and Deficiencies
+' =====================
+'   1. Incorrectly exclude or include the numerator and denominator.
+'      --This bug is caused by subroutines:
+'          `Insert thin space` and
+'          `Integrals and Large Operators`.
+'   2. The bold Roman type will be replaced with the bold Italic type.
+'      --This deficiency comes from the subroutine:
+'          `Font marking - Regular`.
+'        Because even in Word 2016, there is no simple way
+'          to find and replace bold text in the equation box.
 
     Selection.OMaths.Linearize
     
@@ -91,9 +96,6 @@ Sub Eqn_MathML_Correction()
     
     ' Font marking - Regular
     ' ======================
-    '   Question:
-    '     Unfortunately, even in Word 2016, there is no way to find and replace bold text in the equation box.
-    '     --Is that right?
     With Selection.Find.Font
         .Italic = False
     End With
@@ -117,6 +119,14 @@ Sub Eqn_MathML_Correction()
     ' Must NOT remove spacing here
     
     
+        ' Remove erroneous and redundant placeholders next to the subscript
+        With Selection.Find
+            .text = ChrW(12310) & "_\(" & "(?@)" & "\)" & ChrW(12311)
+            .Replacement.text = "\1"
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+        End With
+        
+        
         ' Remove erroneous and redundant placeholders
         With Selection.Find
             .text = "[" & ChrW(12310) & "]" & "(?@)" & "[" & ChrW(12311) & "]"
@@ -127,7 +137,6 @@ Sub Eqn_MathML_Correction()
         
         ' Integrals and Large Operators
         With Selection.Find
-            'Select Case what_found
             ' With super- and sub-script
             .text = "([" & _
                       ChrW(8719) & ChrW(8721) & ChrW(8747) & ChrW(8748) & ChrW(8749) & _
@@ -267,7 +276,7 @@ Sub Eqn_MathML_Correction()
     
     
         ' Fix the latent bug that the equation array does not lie in the same column.
-        '   --caused by the preceding `Font marking` -> `mathematical symbols of Roman typefaces`.
+        '   --caused by the preceding `Font marking - Regular` -> `mathematical symbols of Roman typefaces`.
         If Selection.Find.Execute(FindText:="[!^13]" & ChrW(9632) & "\(") Then
             Selection.MoveRight
             Selection.MoveLeft Count:=2, Extend:=wdExtend
@@ -495,8 +504,8 @@ End Function
 
 Sub Shortcut_Keys_Preset_Assignment()
 
-' You can run `Shortcut_Keys_Customization_Pane` to
-'   see and modify easily in the visible pane.
+' You can run `Shortcut_Keys_Customization_Pane`
+'   to see and modify easily in the visible pane.
 '
 ' Current preset:
 '   Alt + B       <=    Eqn_Bookmark
@@ -524,9 +533,8 @@ End Sub
 
 Sub Shortcut_Keys_Customization_Pane()
 
-    SendKeys "{ESC}"
     SendKeys "%"
-    SendKeys "FT"
-    SendKeys "{DOWN 7}{TAB 3}~{END}{UP 4}{TAB}"
+    SendKeys "+{F10}"
+    SendKeys "{UP 2}~{TAB 3}~{END}{UP 4}{TAB}"
 
 End Sub
