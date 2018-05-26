@@ -45,20 +45,19 @@ Sub Eqn_MathML_Correction()
 ' ====
 '   It's better used only for interline formulas, not for inline formulas.
 '
-' Bugs and Deficiencies
-' =====================
-'   1. Incorrectly exclude or include the numerator and denominator.
-'      --This bug is caused by subroutines:
-'          `Insert thin space` and
-'          `Integrals and Large Operators`.
-'   2. The bold Roman type will be replaced with the bold Italic type.
-'      --This deficiency comes from the subroutine:
-'          `Font marking - Regular`.
-'        Because even in Word 2016, there is no simple way
-'          to find and replace bold text in the equation box.
+' Bug
+' ===
+'   Incorrectly exclude or include the numerator and denominator.
+'   --This bug is caused by subroutines:
+'       `Insert thin space` and
+'       `Integrals and Large Operators`.
+
 
     Selection.OMaths.Linearize
     
+    ' ClearFormatting required!
+    Selection.Find.ClearFormatting
+    Selection.Find.Replacement.ClearFormatting
     
     With Selection.Find
         .MatchWildcards = False
@@ -97,7 +96,8 @@ Sub Eqn_MathML_Correction()
     ' Font marking - Regular
     ' ======================
     With Selection.Find.Font
-        .Italic = False
+        .Bold = 0
+        .Italic = 0
     End With
     
     Dim text_identifier__R As String
@@ -113,12 +113,52 @@ Sub Eqn_MathML_Correction()
     ' ====================
     
     
+    ' Font marking - Bold & Italic
+    ' ============================
+    With Selection.Find.Font
+        .Bold = 1
+        .Italic = 1
+    End With
+    
+    Dim text_identifier__B_I As String
+    text_identifier__B_I = "~%``%~"
+    
+    With Selection.Find
+        .text = "([! ])"
+        .Replacement.text = text_identifier__B_I & "\1" & text_identifier__B_I
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    ' ====================
+    
+    
+    ' Font marking - Bold & Regular
+    ' =============================
+    With Selection.Find.Font
+        .Bold = 1
+        .Italic = 0
+    End With
+    
+    Dim text_identifier__B_R As String
+    text_identifier__B_R = "~%`%~"
+    
+    With Selection.Find
+        .text = "(?)"
+        .Replacement.text = text_identifier__B_R & "\1" & text_identifier__B_R
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    ' ====================
+    
+    
     Selection.Font.Italic = 0 ' Note: Otherwise, the alphabetic characters in the equation environment cannot be found.
     
+    ' ClearFormatting required!
+    Selection.Find.ClearFormatting
+    Selection.Find.Replacement.ClearFormatting
     
-    ' Must NOT remove spacing here
     
-    
+        ' Must NOT remove spacing here
+        
+        
         ' Remove erroneous and redundant placeholders next to the subscript
         With Selection.Find
             .text = ChrW(12310) & "_\(" & "(?@)" & "\)" & ChrW(12311)
@@ -218,8 +258,10 @@ Sub Eqn_MathML_Correction()
     Selection.Font.Italic = 1
     
     
-    ' Font restoring - Regular
-    ' ========================
+    ' Font restoring
+    ' ==============
+    ' Regular
+    ' -------
     Selection.Find.ClearFormatting
     Selection.Find.Replacement.ClearFormatting
     With Selection.Find
@@ -234,6 +276,44 @@ Sub Eqn_MathML_Correction()
             Else
                 Exit Do
             End If
+        Loop
+        
+        ' Reselect the equation block region
+        Selection.MoveUp Unit:=wdParagraph
+        Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    
+    ' Bold & Regular
+    ' --------------
+    With Selection.Find
+        .Replacement.text = "\1"
+        .MatchWildcards = True
+    
+        Do While .Execute(FindText:=text_identifier__B_R & "([!^^" & text_identifier__B_R & "]@)" & text_identifier__B_R, _
+                    Wrap:=wdFindStop)
+                Selection.Font.Bold = True
+                Selection.Font.Italic = False
+        Loop
+        
+        ' Reselect the equation block region
+        Selection.MoveUp Unit:=wdParagraph
+        Selection.MoveDown Unit:=wdParagraph, Extend:=wdExtend
+        
+        .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+    End With
+    
+    ' Bold & Italic
+    ' -------------
+    With Selection.Find
+        .Replacement.text = "\1"
+        .MatchWildcards = True
+    
+        Do While .Execute(FindText:=text_identifier__B_I & "([!^^" & text_identifier__B_I & "]@)" & text_identifier__B_I, _
+                    Wrap:=wdFindStop)
+                Selection.Font.Bold = True
+                Selection.Font.Italic = True
         Loop
         
         ' Reselect the equation block region
@@ -326,6 +406,7 @@ Sub Eqn_Num()
 ' STEP 2.
 '   Run the macro.
 
+
     With CaptionLabels("Equation")
         .NumberStyle = wdCaptionNumberStyleArabic
         .IncludeChapterNumber = True
@@ -372,6 +453,7 @@ Sub Eqn_Bookmark()
 '   Run the macro.
 '     (Then the bookmark object is automatically copied to the clipboard,
 '       and you can paste it directly to your target location)
+
 
     ActiveWindow.View.ShowFieldCodes = 1
     Selection.MoveRight Extend:=wdExtend
@@ -512,6 +594,7 @@ Sub Shortcut_Keys_Preset_Assignment()
 '   Alt + =       <=    Eqn_Italic
 '   Alt + 1       <=    Eqn_Num
 '   Alt + S, C    <=    Eqn_MathML_Correction
+
 
     CustomizationContext = NormalTemplate
     
