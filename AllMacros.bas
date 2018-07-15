@@ -8,6 +8,7 @@ Sub Eqn_Italic()
 '   Word will **crash** if the equation box is deleted using the BACKSPACE key in paragraph mode.
 '     (For example: click the mouse three times to select the entire equation box,
 '       then press the backspace key twice)
+'
 ' Solution
 ' --------
 '   Always use the DELETE key only.
@@ -20,6 +21,7 @@ Sub Eqn_Italic()
 '     This problem occurs when the equation has been cleared
 '       but the empty selection region remains in the equation environment,
 '       and at the same time you didn't pay attention and added a new one there.
+'
 ' Solution
 ' --------
 '   Directly continue typing your equation,
@@ -193,6 +195,10 @@ Sub Eqn_MathML_Correction()
             ' Remove some incorrect extra additions
             .text = "([\)])" & ChrW(9618) & " ([\(])"
             .Replacement.text = "\1 \2"
+            .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
+            
+            .text = "(" & ChrW(9618) & "[|])" & ChrW(9618)
+            .Replacement.text = "\1"
             .Execute Replace:=wdWord, Wrap:=wdFindStop, MatchWildcards:=True
             
             
@@ -394,7 +400,7 @@ Sub Eqn_Num()
 
 ' Note
 ' ====
-'   1. Only applies to Microsoft Word 2016 and later,
+'   1. Only applies to Microsoft Word 2016, Office 365 or later,
 '        because `#(...)` is used to create an equation array.
 '   2. Release your hand as soon as possible after pressing the shortcut key.
 '
@@ -411,8 +417,13 @@ Sub Eqn_Num()
         .NumberStyle = wdCaptionNumberStyleArabic
         .IncludeChapterNumber = True
         .ChapterStyleLevel = Selection.Paragraphs(1).Range.ListFormat.ListLevelNumber + 1
+		' ↑ [Options]
+		'      ... + 1    -> e.g. "1.1-1"
+		'      ... (only) -> e.g. "1.1"
         .separator = wdSeparatorHyphen
-        'separator = wdSeparatorHyphen "-" || wdSeparatorPeriod "."
+		' ↑ [Options]
+        '      ... = wdSeparatorHyphen  (i.e. "-")
+		'         || wdSeparatorPeriod  (i.e. ".")
     End With
     
     Selection.TypeText text:="#("
@@ -444,9 +455,10 @@ Sub Eqn_Bookmark()
 '     (1.1-1{Eqn__Name})
 '
 ' STEP 1.
-'   Put the cursor closely before right parenthesis:
+'   Put the cursor closely before the right-hand-side parenthesis:
 '     (1.1-1|)
 '           ^
+'   or
 '     (1.1-1{Eqn__Name}|)
 '                      ^
 ' STEP 2.
@@ -487,7 +499,7 @@ Sub Eqn_Bookmark()
             Selection.MoveLeft Extend:=wdExtend
             Selection.Cut
             
-            ' Override the field to ensure bookmark identifier is consistent with REF
+            ' Override the field to ensure the bookmark tag is consistent with REF
             Selection.EndKey
             Selection.MoveEndUntil Chr(21), wdBackward
             Selection.MoveLeft Extend:=wdExtend
@@ -516,7 +528,7 @@ Sub Eqn_Bookmark()
             Selection.MoveLeft Extend:=wdExtend
             Selection.Cut
             
-            ' Add bookmark identifier (hidden)
+            ' Add bookmark tag (hidden)
             Selection.Fields.Add Range:=Selection.Range, Type:=wdFieldEmpty, text:= _
                 bookmark_name & "\", PreserveFormatting:=False
         End If
@@ -533,7 +545,7 @@ Sub Eqn_Bookmark()
         End With
         Selection.MoveRight
         
-        ' Add bookmark identifier (hidden)
+        ' Add bookmark tag (hidden)
         Selection.Fields.Add Range:=Selection.Range, Type:=wdFieldEmpty, text:= _
             bookmark_name & "\", PreserveFormatting:=False
         
