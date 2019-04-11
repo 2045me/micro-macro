@@ -22,6 +22,7 @@ Dim objFileName, objFileMainName As String
 Set objShell = CreateObject("Shell.Application")
 Set objFolder = objShell.Namespace(ActiveWorkbook.Path & "\图片目录")
 
+
 ' [(Rough prototype)]( www.wordlm.com/Excel/jqdq/6627.html )
 For Each MR In Selection
   If Not IsEmpty(MR) Then
@@ -29,6 +30,7 @@ For Each MR In Selection
     MR.AddComment
     MR.Comment.Visible = False
     MR.Comment.Text Text:=""
+    
     
     objFileMainName = ActiveWorkbook.Path & "\图片目录\" & MR.Value
     nameExtension = ".png"
