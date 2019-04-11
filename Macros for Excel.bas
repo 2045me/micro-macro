@@ -53,7 +53,7 @@ For Each MR In Selection
     width_ = Mid(size_, 2, size_delimiter - 2)
     height_ = Mid(size_, size_delimiter + 2, Len(size_) - 8)
     
-    If (height_ > 500) Then
+    If (height_ > 1000) Then
         height_ = height_ / 2
         width_ = width_ / 2
     End If
