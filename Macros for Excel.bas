@@ -36,7 +36,6 @@ fileDir = ThisWorkbook.Path & "\" & imgDir & "\"
 Set objShell = CreateObject("Shell.Application")
 Set objDir = objShell.Namespace(fileDir)
 
-
 ' [(Rough prototype)]( www.wordlm.com/Excel/jqdq/6627.html )
 Dim MR As Range
 For Each MR In Selection
@@ -46,46 +45,46 @@ For Each MR In Selection
     MR.AddComment
     MR.Comment.Visible = False
     MR.Comment.Text Text:=""
-    
+
     ' -------- 获取图片文件 --------
     objFileMainName = fileDir & MR.Value
-    
+
     ' [VBA open a file if only know part of the file name without extension name]( https://stackoverflow.com/a/2861006 )
     objFileName = Dir(objFileMainName & ".*")
-    
+
     ' [VBA check if file exists]( https://stackoverflow.com/a/33771924 )
     If Dir(objFileName, vbDirectory) = "." Then
-        MsgBox "未找到指定文件。请修改图片的文件名或单元格的内容，使二者相同"
-        MR.ClearComments
-        Exit Sub
+      MsgBox "未找到指定文件。请修改图片的文件名或单元格的内容，使二者相同"
+      MR.ClearComments
+      Exit Sub
     End If
-    
+
     MR.Comment.Shape.Fill.UserPicture PictureFile:=fileDir & objFileName
-    
+
     ' -------- 调整图片尺寸 --------
     Set objFile = objDir.ParseName(objFileName)
-    
+
     ' [VBA extract substrings in image attributes]( https://stackoverflow.com/a/46504821 )
     size_ = objFile.ExtendedProperty("Dimensions")
     size_delimiter = InStr(size_, "x")
     width_ = Val(Mid(size_, 2, size_delimiter - 2))
     height_ = Val(Mid(size_, size_delimiter + 2, Len(size_)))
-    
+
     ' [VBA get screen resolution]( https://stackoverflow.com/a/41940087 )
     'MsgBox width_ & " x " & height_ & vbCrLf & Application.UsableWidth & " x " & Application.UsableHeight
-    
+
     Select Case True
-        Case width_ > Application.UsableWidth
-             height_ = height_ / width_ * Application.UsableWidth * 0.75
-             width_ = Application.UsableWidth * 0.75
-        Case height_ > Application.UsableHeight
-             width_ = width_ / height_ * Application.UsableHeight * 1.15
-             height_ = Application.UsableHeight * 1.15
+      Case width_ > Application.UsableWidth
+        height_ = height_ / width_ * Application.UsableWidth * 0.75
+        width_ = Application.UsableWidth * 0.75
+      Case height_ > Application.UsableHeight
+        width_ = width_ / height_ * Application.UsableHeight * 1.15
+        height_ = Application.UsableHeight * 1.15
     End Select
-    
+
     MR.Comment.Shape.Width = width_
     MR.Comment.Shape.Height = height_
-    
+
   End If
 Next
 End Sub
