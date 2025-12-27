@@ -75,13 +75,15 @@ For Each MR In Selection
     ' [VBA get screen resolution]( https://stackoverflow.com/a/41940087 )
     'MsgBox width_ & " x " & height_ & vbCrLf & Application.UsableWidth & " x " & Application.UsableHeight
 
+    scale_factor_small = 0.75
+    scale_factor_large = 1.15
     Select Case True
       Case width_ > Application.UsableWidth
-        height_ = height_ / width_ * Application.UsableWidth * 0.75
-        width_ = Application.UsableWidth * 0.75
+        height_ = height_ / width_ * Application.UsableWidth * scale_factor_small
+        width_ = Application.UsableWidth * scale_factor_small
       Case height_ > Application.UsableHeight
-        width_ = width_ / height_ * Application.UsableHeight * 1.15
-        height_ = Application.UsableHeight * 1.15
+        width_ = width_ / height_ * Application.UsableHeight * scale_factor_large
+        height_ = Application.UsableHeight * scale_factor_large
     End Select
 
     MR.Comment.Shape.Width = width_
